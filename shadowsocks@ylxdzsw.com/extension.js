@@ -1,5 +1,3 @@
-// -*- mode: js2; indent-tabs-mode: nil; js2-basic-offset: 4 -*-
-// Sample extension code, makes clicking on the panel show a message
 const St = imports.gi.St;
 const Mainloop = imports.mainloop;
 
@@ -7,10 +5,25 @@ const Main = imports.ui.main;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
+
+const Gio = imports.gi.Gio;
+
+function getSettings() {
+    let schemaSource = Gio.SettingsSchemaSource.new_from_directory(
+        Me.dir.get_child('schemas').get_path(),
+        Gio.SettingsSchemaSource.get_default(),
+        false
+    )
+
+    let schemaObj = schemaSource.lookup(Me.metadata['settings-schema'], true)
+    if (!schemaObj)
+        throw new Error(Me.metadata.uuid + ": schema not found.")
+
+    return new Gio.Settings({ settings_schema: schemaObj })
+}
 
 function _showHello() {
-    let settings = Convenience.getSettings();
+    let settings = getSettings();
     let text = settings.get_boolean('test') ? "true" : "Hello, world!";
 
     let label = new St.Label({ style_class: 'helloworld-label', text: text });
