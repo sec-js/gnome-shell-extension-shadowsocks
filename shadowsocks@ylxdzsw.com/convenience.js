@@ -38,29 +38,18 @@ const ExtensionUtils = imports.misc.extensionUtils;
  * in extensionsdir/schemas. If @schema is not provided, it is taken from
  * metadata['settings-schema'].
  */
-function getSettings(schema) {
-    let extension = ExtensionUtils.getCurrentExtension();
+function getSettings() {
+    let extension = ExtensionUtils.getCurrentExtension()
+    let schema = extension.metadata['settings-schema']
+    let schemaDir = extension.dir.get_child('schemas')
+    let schemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir.get_path(),
+                                                    Gio.SettingsSchemaSource.get_default(),
+                                                    false)
 
-    schema = schema || extension.metadata['settings-schema'];
-
-    const GioSSS = Gio.SettingsSchemaSource;
-
-    // check if this extension was built with "make zip-file", and thus
-    // has the schema files in a subfolder
-    // otherwise assume that extension has been installed in the
-    // same prefix as gnome-shell (and therefore schemas are available
-    // in the standard folders)
-    let schemaDir = extension.dir.get_child('schemas');
-    let schemaSource;
-        schemaSource = GioSSS.new_from_directory(schemaDir.get_path(),
-                                                 GioSSS.get_default(),
-                                                 false);
-
-    let schemaObj = schemaSource.lookup(schema, true);
+    let schemaObj = schemaSource.lookup(schema, true)
     if (!schemaObj)
-        throw new Error('Schema ' + schema + ' could not be found for extension '
-                        + extension.metadata.uuid + '. Please check your installation.');
+        throw new Error(extension.metadata.uuid + ": schema not found.")
 
-    return new Gio.Settings({ settings_schema: schemaObj });
+    return new Gio.Settings({ settings_schema: schemaObj })
 }
 								  
