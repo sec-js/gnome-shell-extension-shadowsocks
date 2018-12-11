@@ -5,9 +5,6 @@ const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 
-const Gettext = imports.gettext.domain('gnome-shell-extensions');
-const _ = Gettext.gettext;
-
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
@@ -24,7 +21,7 @@ class ExamplePrefsWidget extends Gtk.Grid {
         this.row_spacing = this.column_spacing = 6;
         this.set_orientation(Gtk.Orientation.VERTICAL);
 
-        this.add(new Gtk.Label({ label: '<b>' + _("Message") + '</b>',
+        this.add(new Gtk.Label({ label: '<b>' + "Message" + '</b>',
                                  use_markup: true,
                                  halign: Gtk.Align.START }));
 
@@ -37,9 +34,9 @@ class ExamplePrefsWidget extends Gtk.Grid {
 
         // TRANSLATORS: Example is the name of the extension, should not be
         // translated
-        let primaryText = _("Example aims to show how to build well behaved \
+        let primaryText = "Example aims to show how to build well behaved \
 extensions for the Shell and as such it has little functionality on its own.\n\
-Nevertheless it’s possible to customize the greeting message.");
+Nevertheless it’s possible to customize the greeting message.";
 
         this.add(new Gtk.Label({ label: primaryText,
                                  wrap: true, xalign: 0 }));

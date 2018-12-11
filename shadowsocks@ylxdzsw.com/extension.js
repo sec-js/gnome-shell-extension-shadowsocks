@@ -3,9 +3,6 @@
 const St = imports.gi.St;
 const Mainloop = imports.mainloop;
 
-const Gettext = imports.gettext.domain('gnome-shell-extensions');
-const _ = Gettext.gettext;
-
 const Main = imports.ui.main;
 
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -14,7 +11,7 @@ const Convenience = Me.imports.convenience;
 
 function _showHello() {
     let settings = Convenience.getSettings();
-    let text = settings.get_string('hello-text') || _("Hello, world!");
+    let text = settings.get_string('hello-text') || "Hello, world!";
 
     let label = new St.Label({ style_class: 'helloworld-label', text: text });
     let monitor = Main.layoutManager.primaryMonitor;
