@@ -10,9 +10,8 @@ const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
 function _showHello() {
-    // let settings = Convenience.getSettings();
-    // settings.get_string('hello-text')
-    let text = "Hello, world!";
+    let settings = Convenience.getSettings();
+    let text = settings.get_boolean('test') ? "true" : "Hello, world!";
 
     let label = new St.Label({ style_class: 'helloworld-label', text: text });
     let monitor = Main.layoutManager.primaryMonitor;
