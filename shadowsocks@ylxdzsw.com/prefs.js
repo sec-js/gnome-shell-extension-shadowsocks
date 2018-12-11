@@ -10,7 +10,6 @@ const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
 function init() {
-    Convenience.initTranslations();
 }
 
 const ExamplePrefsWidget = GObject.registerClass(

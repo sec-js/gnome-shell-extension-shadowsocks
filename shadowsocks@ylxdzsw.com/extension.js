@@ -23,8 +23,6 @@ function _showHello() {
 // Put your extension initialization code here
 function init(metadata) {
     log ('Example extension initalized');
-
-    Convenience.initTranslations();
 }
 
 let signalId;
