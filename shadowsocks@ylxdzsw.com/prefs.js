@@ -28,8 +28,8 @@ class ExamplePrefsWidget extends Gtk.Grid {
                                     margin_bottom: 12 });
         this.add(entry);
 
-        this._settings = Convenience.getSettings();
-        this._settings.bind('hello-text', entry, 'text', Gio.SettingsBindFlags.DEFAULT);
+        // this._settings = Convenience.getSettings();
+        // this._settings.bind('hello-text', entry, 'text', Gio.SettingsBindFlags.DEFAULT);
 
         // TRANSLATORS: Example is the name of the extension, should not be
         // translated

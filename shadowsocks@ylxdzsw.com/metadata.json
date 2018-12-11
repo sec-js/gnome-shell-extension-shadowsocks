@@ -1,7 +1,7 @@
 {
 	"extension-id": "example",
 	"uuid": "shadowsocks@ylxdzsw.com",
-	"settings-schema": "org.gnome.shell.extensions.example",
+	"settings-schema": "org.gnome.shell.extensions.shadowsocks",
 	"gettext-domain": "gnome-shell-extensions",
 	"name": "Hello, World!",
 	"description": "An example extension to show how it works. Shows Hello, world when clicking on the top panel.",
