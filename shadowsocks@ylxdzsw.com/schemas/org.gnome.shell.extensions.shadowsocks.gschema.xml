@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions-shadowsocks">
+    <schema path="/org/gnome/shell/extensions/shadowsocks/" id="org.gnome.shell.extensions.shadowsocks">
+        <key type="as" name="proxies">
+            <default>[ ]</default>
+            <summary>Proxies</summary>
+            <description>User added proxies</description>
+        </key>
+        <key type="b" name="test">
+            <default>true</default>
+            <summary>Just a switch</summary>
+            <description>Just a switch.</description>
+        </key>
+    </schema>
+</schemalist>

@@ -1,135 +1,49 @@
-const GLib = imports.gi.GLib;
-const Lang = imports.lang;
-const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
+// -*- mode: js2; indent-tabs-mode: nil; js2-basic-offset: 4 -*-
+// Sample extension code, makes clicking on the panel show a message
 const St = imports.gi.St;
+const Mainloop = imports.mainloop;
+
+const Gettext = imports.gettext.domain('gnome-shell-extensions');
+const _ = Gettext.gettext;
+
+const Main = imports.ui.main;
+
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const Util = imports.misc.util;
-const PopupServiceItem = Me.imports.popupServiceItem.PopupServiceItem;
 
-const ServicesManager = new Lang.Class({
-    Name: 'ServicesManager',
-    _entries: [],
-    _containerType: -1,
+function _showHello() {
+    let settings = Convenience.getSettings();
+    let text = settings.get_string('hello-text') || _("Hello, world!");
 
-    _init: function() {
-        this._settings = Convenience.getSettings();
-        this._settings.connect('changed', Lang.bind(this, this._loadConfig));
+    let label = new St.Label({ style_class: 'helloworld-label', text: text });
+    let monitor = Main.layoutManager.primaryMonitor;
+    global.stage.add_actor(label);
+    label.set_position(Math.floor (monitor.width / 2 - label.width / 2), Math.floor(monitor.height / 2 - label.height / 2));
+    Mainloop.timeout_add(3000, () => { label.destroy(); });
+}
 
-        this._createContainer();
-        this._loadConfig();
-        this._refresh();
-    },
-    _createContainer: function() {
-        this._containerType = this._settings.get_enum('position');
+// Put your extension initialization code here
+function init(metadata) {
+    log ('Example extension initalized');
 
-        if (this._containerType == 0) {
-            this.container = new PanelMenu.Button()
-            PanelMenu.Button.prototype._init.call(this.container, 0.0);
+    Convenience.initTranslations();
+}
 
-            let hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
-            let icon = new St.Icon({icon_name: 'system-run-symbolic', style_class: 'system-status-icon'});
-            hbox.add_child(icon);
-
-            this.container.actor.add_actor(hbox);
-            this.container.actor.add_style_class_name('panel-status-button');
-
-            this.container.actor.connect('button-press-event', Lang.bind(this, function() {
-                this._refresh();
-            }));
-            Main.panel.addToStatusArea('servicesManager', this.container);;
-        } else {
-            this.container = new PopupMenu.PopupSubMenuMenuItem("Systemd Services", true);
-            //this.container.icon.style_class = 'system-extensions-submenu-icon';
-            this.container.icon.icon_name = 'system-run-symbolic';
-
-            Main.panel.statusArea.aggregateMenu.menu.addMenuItem(this.container, 8);
-        }
-
-        this.container.actor.connect('button-press-event', Lang.bind(this, function() {
-            this._refresh();
-        }));
-    },
-    _getCommand: function(service, action, type) {
-        let command = "systemctl"
-
-        command += " " + action
-        command += " " + service
-        command += " --" + type
-        if (type == "system" && action != 'is-active')
-          if (this._settings.get_enum("command-method") == 0 )
-            command = "pkexec --user root " + command
-
-        return 'sh -c "' + command + '; exit;"'
-    },
-    _refresh: function() {
-        this.container.menu.removeAll();
-        this._entries.forEach(Lang.bind(this, function(service) {
-            let active = false;
-            let [_, out, err, stat] = GLib.spawn_command_line_sync(
-                this._getCommand(service['service'], 'is-active', service["type"]));
-
-            active = (stat == 0);
-
-            let restartButton = this._settings.get_boolean('show-restart')
-
-            let serviceItem = new PopupServiceItem(service['name'], active, {'restartButton': restartButton});
-            this.container.menu.addMenuItem(serviceItem);
-
-            serviceItem.connect('toggled', Lang.bind(this, function() {
-                GLib.spawn_command_line_async(
-                    this._getCommand(service['service'], (active ? 'stop' : 'start'), service["type"]));
-            }));
-
-            if (serviceItem.restartButton)
-                serviceItem.restartButton.connect('clicked', Lang.bind(this, function() {
-                    GLib.spawn_command_line_async(
-                        this._getCommand(service['service'], 'restart', service["type"]));
-                    this.container.menu.close();
-                }));
-        }));
-        if(this._containerType == 0 && this._settings.get_boolean('show-add')) {
-            if(this._entries.length > 0)
-                this.container.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-            let item = new PopupMenu.PopupMenuItem(_("Add systemd services ..."));
-            item.connect('activate', Lang.bind(this, function() {
-                Util.spawn(["gnome-shell-extension-prefs", "services-systemd@abteil.org"]);
-                this.container.menu.close();
-            }));
-            this.container.menu.addMenuItem(item);
-        }
-        return true;
-    },
-    _loadConfig: function() {
-        if (this._containerType != this._settings.get_enum('position')) {
-            this.container.destroy();
-            this._createContainer();
-        }
-
-        let entries = this._settings.get_strv("systemd");
-        this._entries = []
-        for (let i = 0; i < entries.length; i++) {
-            let entry = JSON.parse(entries[i]);
-            if (!("type" in entry))
-                entry["type"] = "system"
-            this._entries.push(entry);
-        }
-    },
-    destroy: function() {
-        this.container.destroy();
-    }
-});
-
-let serviceManager;
+let signalId;
 
 function enable() {
-    serviceManager = new ServicesManager();
+    log ('Example extension enabled');
+
+    Main.panel.actor.reactive = true;
+    signalId = Main.panel.actor.connect('button-release-event', _showHello);
 }
 
 function disable() {
-    serviceManager.destroy();
+    log ('Example extension disabled');
+
+    if (signalId) {
+        Main.panel.actor.disconnect(signalId);
+        signalId = 0;
+    }
 }
