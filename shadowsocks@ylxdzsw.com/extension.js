@@ -1,4 +1,4 @@
-const { Gio, St, Soup } = imports.gi
+const { GLib, Gio, St } = imports.gi
 const Mainloop = imports.mainloop
 
 const Main = imports.ui.main
@@ -32,37 +32,36 @@ const shadowsocksManager = {
 
         button.actor.add_actor(icon)
         button.actor.add_style_class_name('panel-status-button')
-        button.actor.connect('button-press-event', () => this.toast("Hello World!"))
+        button.actor.connect('button-press-event', () => this.parse_surge("http://aliyun.ylxdzsw.com:8080/surge.txt"))
         Main.panel.addToStatusArea('shadowsocksManager', button)
 
         return button
     },
 
-    parse_surge(url) {
-        const sess = new Soup.SessionAsync()
-        sess.add_feature(new Soup.ProxyResolverDefault())
-        
-        const query = Soup.Message.new('GET', url)
-        return new Promise((resolve, reject) => {
-            sess.queue_message(query, (_, msg) => {
-                this.toast('' + msg.status_code)
-                if (msg.status_code != 200) return reject(msg.status_code)
-                try {
-                    const list = query.response_body.data.match(/\[Proxy\]([^]+?)\n\n/)[1].split('\n')
-                    //for (const item of list) {
-                    const item = list[0]
-                        const [_, name, domain, port, crypt, passwd] = item.match(/^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/)
-                        this.toast(name)
-                    //}
-                } catch (e) {
-                    reject(e)
-                }
-            })
-        })
-    },
-
     destroy() {
         this.panelButton.destroy()
+    },
+
+    async parse_surge(url) {
+        global.log(await this.exec_async(["/bin/echo", "fuck"]))
+        this.toast("this is a long message that you won't miss" + await this.exec_async(["/usr/bin/curl", "-L", url]))
+
+        
+
+        return null
+
+        this.toast('' + status + ' ' + succeed + ' ' + length(out))
+        if (!succeed || status) throw new Error(status)
+
+        const data = '' + out
+        const m = data.match(/\[Proxy\]([^]+?)\n\n/)
+        
+        const list = (m ? m[1] : data).split('\n')
+        //for (const item of list) {
+        const item = list[0]
+            const [_, name, domain, port, crypt, passwd] = item.match(/^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/)
+            this.toast(name)
+        //}
     },
 
     toast(msg) {
@@ -71,6 +70,49 @@ const shadowsocksManager = {
         global.stage.add_actor(label)
         label.set_position(Math.floor (monitor.width / 2 - label.width / 2), Math.floor(monitor.height / 2 - label.height / 2))
         Mainloop.timeout_add(3000, () => label.destroy())
+    },
+
+    exec_async(args) {
+        global.log("MY MESSAGE: here")
+        
+        let [_, pid, stdinFd, stdoutFd, stderrFd] =
+            GLib.spawn_async_with_pipes(null, args, null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null)
+
+        global.log("MY MESSAGE: "+pid)
+
+        let stdout = new Gio.UnixInputStream({fd: stdoutFd, close_fd: true})
+        let outReader = new Gio.DataInputStream({base_stream: stdout})
+
+        let stderr = new Gio.UnixInputStream({fd: stderrFd, close_fd: true})
+        let errReader = new Gio.DataInputStream({base_stream: stderr})
+
+        GLib.close(stdinFd)
+
+        return new Promise((resolve, reject) => {
+            try {
+                const cw = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, () => {
+                    let output = []
+                    let [line, size] = [null, 0]
+        
+                    while (([line, size] = outReader.read_line(null)) != null && line != null) {
+                        if(line)
+                            output.push('' + line)
+                    }
+                    stdout.close(null)
+
+                    while (([line, size] = errReader.read_line(null)) != null && line != null) {
+                        if(line)
+                            output.push('' + line)
+                    }
+                    stderr.close(null)
+        
+                    GLib.source_remove(cw)
+                    resolve(output)
+                })
+            } catch (e) {
+                reject(e)
+            }
+        })
     },
 
     _showHello() {
