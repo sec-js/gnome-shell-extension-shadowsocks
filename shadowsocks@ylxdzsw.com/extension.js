@@ -1,12 +1,13 @@
-const St = imports.gi.St;
-const Mainloop = imports.mainloop;
+const Gio = imports.gi.Gio
+const St = imports.gi.St
+const Mainloop = imports.mainloop
 
-const Main = imports.ui.main;
+const Main = imports.ui.main
+const PanelMenu = imports.ui.panelMenu
+const PopupMenu = imports.ui.popupMenu
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-
-const Gio = imports.gi.Gio;
+const ExtensionUtils = imports.misc.extensionUtils
+const Me = ExtensionUtils.getCurrentExtension()
 
 function getSettings() {
     let schemaSource = Gio.SettingsSchemaSource.new_from_directory(
@@ -22,36 +23,39 @@ function getSettings() {
     return new Gio.Settings({ settings_schema: schemaObj })
 }
 
-function _showHello() {
-    let settings = getSettings();
-    let text = settings.get_boolean('test') ? "true" : "Hello, world!";
+class ShadowsocksManager {
+    constructor() {
+        
+    }
 
-    let label = new St.Label({ style_class: 'helloworld-label', text: text });
-    let monitor = Main.layoutManager.primaryMonitor;
-    global.stage.add_actor(label);
-    label.set_position(Math.floor (monitor.width / 2 - label.width / 2), Math.floor(monitor.height / 2 - label.height / 2));
-    Mainloop.timeout_add(3000, () => { label.destroy(); });
+    _connect() {
+        Main.panel.actor.reactive = true
+        this.signalId = Main.panel.actor.connect('button-release-event', this._showHello)
+    }
+
+    _disconnect() {
+        Main.panel.actor.disconnect(this.signalId)
+    }
+
+    _showHello() {
+        let settings = getSettings()
+        let text = settings.get_boolean('test') ? "true" : "Hello, world!"
+    
+        let label = new St.Label({ style_class: 'helloworld-label', text: text })
+        let monitor = Main.layoutManager.primaryMonitor
+        global.stage.add_actor(label)
+        label.set_position(Math.floor (monitor.width / 2 - label.width / 2), Math.floor(monitor.height / 2 - label.height / 2))
+        Mainloop.timeout_add(3000, () => { label.destroy() })
+    }
 }
 
-// Put your extension initialization code here
-function init(metadata) {
-    log ('Example extension initalized');
-}
-
-let signalId;
+let shadowsocksManager
 
 function enable() {
-    log ('Example extension enabled');
-
-    Main.panel.actor.reactive = true;
-    signalId = Main.panel.actor.connect('button-release-event', _showHello);
+    shadowsocksManager = new ShadowsocksManager()
+    shadowsocksManager._connect()
 }
 
 function disable() {
-    log ('Example extension disabled');
-
-    if (signalId) {
-        Main.panel.actor.disconnect(signalId);
-        signalId = 0;
-    }
+    shadowsocksManager._disconnect()
 }
