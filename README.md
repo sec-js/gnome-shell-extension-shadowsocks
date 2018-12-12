@@ -14,3 +14,9 @@ TODO
 
 Forked from [gnome-shell-extension-services-systemd](https://github.com/petres/gnome-shell-extension-services-systemd),
 which is under GPLv3.
+
+## TODO
+
+[-] find a nice paper plane icon
+[-] SSR subscription
+[-] allow overwriting parameters of subscription
