@@ -43,10 +43,8 @@ const shadowsocksManager = {
     },
 
     async parse_surge(url) {
-        global.log(await this.exec_async(["/bin/echo", "fuck"]))
-        this.toast("this is a long message that you won't miss" + await this.exec_async(["/usr/bin/curl", "-L", url]))
-
-        
+        const [out, err] = await this.exec_async(["echo", "fuck"])
+        global.log(out)
 
         return null
 
@@ -73,12 +71,8 @@ const shadowsocksManager = {
     },
 
     exec_async(args) {
-        global.log("MY MESSAGE: here")
-        
         let [_, pid, stdinFd, stdoutFd, stderrFd] =
-            GLib.spawn_async_with_pipes(null, args, null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null)
-
-        global.log("MY MESSAGE: "+pid)
+            GLib.spawn_async_with_pipes(null, args, null, GLib.SpawnFlags.DO_NOT_REAP_CHILD | GLib.SpawnFlags.SEARCH_PATH, null)
 
         let stdout = new Gio.UnixInputStream({fd: stdoutFd, close_fd: true})
         let outReader = new Gio.DataInputStream({base_stream: stdout})
@@ -91,23 +85,19 @@ const shadowsocksManager = {
         return new Promise((resolve, reject) => {
             try {
                 const cw = GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, () => {
-                    let output = []
-                    let [line, size] = [null, 0]
-        
-                    while (([line, size] = outReader.read_line(null)) != null && line != null) {
-                        if(line)
-                            output.push('' + line)
-                    }
+                    const [out, err] = [[], []]
+                    let line = null
+
+                    while (([line] = outReader.read_line(null)) != null && line != null) if (line)
+                        out.push('' + line)
                     stdout.close(null)
 
-                    while (([line, size] = errReader.read_line(null)) != null && line != null) {
-                        if(line)
-                            output.push('' + line)
-                    }
+                    while (([line] = errReader.read_line(null)) != null && line != null) if (line)
+                        err.push('' + line)
                     stderr.close(null)
-        
+
                     GLib.source_remove(cw)
-                    resolve(output)
+                    resolve([out, err])
                 })
             } catch (e) {
                 reject(e)
