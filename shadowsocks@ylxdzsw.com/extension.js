@@ -25,7 +25,20 @@ function getSettings() {
 
 class ShadowsocksManager {
     constructor() {
-        
+        this.add_button()
+    }
+
+    add_button() {
+        this.panelButton = new PanelMenu.Button()
+        let hbox = new St.BoxLayout()
+        let icon = new St.Icon({icon_name: 'system-run-symbolic', style_class: 'system-status-icon'})
+        hbox.add_child(icon)
+
+        this.panelButton.actor.add_actor(hbox)
+        this.panelButton.actor.add_style_class_name('panel-status-button')
+
+        this.panelButton.actor.connect('button-press-event', this._showHello)
+        Main.panel.addToStatusArea('shadowsocksManager', this.panelButton)
     }
 
     _connect() {
@@ -39,7 +52,7 @@ class ShadowsocksManager {
 
     _showHello() {
         let settings = getSettings()
-        let text = settings.get_boolean('test') ? "true" : "Hello, world!"
+        let text = settings.get_boolean('test') ? 'true' : "Hello, world!"
     
         let label = new St.Label({ style_class: 'helloworld-label', text: text })
         let monitor = Main.layoutManager.primaryMonitor
