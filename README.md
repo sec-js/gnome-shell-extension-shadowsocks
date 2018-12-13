@@ -1,6 +1,10 @@
 Gnome Extension Shadowsocks
 ===========================
 
+My first GJS project. This project is only for learning developing Gnome extensions.
+
+Still under developing, features incomplete.
+
 ## Features
 
 - easily switch proxy from system tray

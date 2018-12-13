@@ -43,23 +43,24 @@ const shadowsocksManager = {
     },
 
     async parse_surge(url) {
-        const [out, err] = await this.exec_async(["echo", "fuck"])
-        global.log(out)
+        global.log("requesting "+url)
 
-        return null
+        const [out, err] = await this.exec_async(["curl", "-L", url])
+        const data = out.join('\n')
 
-        this.toast('' + status + ' ' + succeed + ' ' + length(out))
-        if (!succeed || status) throw new Error(status)
 
-        const data = '' + out
-        const m = data.match(/\[Proxy\]([^]+?)\n\n/)
+        global.log("before fuck")
+        const m = out.match(/\[Proxy\]([^]+?)\n\n/)
+        global.log("fuck")
         
-        const list = (m ? m[1] : data).split('\n')
-        //for (const item of list) {
-        const item = list[0]
-            const [_, name, domain, port, crypt, passwd] = item.match(/^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/)
-            this.toast(name)
-        //}
+        global.log(m)
+
+
+        // const list = (m ? m[1] : out.slice(0, -1)).split('\n')
+        // for (const item of list) {
+        //     const [_, name, domain, port, crypt, passwd] = item.match(/^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/)
+        //     global.log(name)
+        // }
     },
 
     toast(msg) {
