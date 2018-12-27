@@ -1,4 +1,4 @@
-const { GLib, GObject, Gio, St, Gtk } = imports.gi
+const { GLib, GObject, Gio, St } = imports.gi
 
 const Main = imports.ui.main
 const Mainloop = imports.mainloop
@@ -82,4 +82,14 @@ const shadowsocks = {
 
         return new Gio.Settings({ settings_schema: schemaObj })
     })(),
+
+    system_proxy: new Gio.Settings({ schema: "org.gnome.system.proxy" }),
+
+    set_system_proxy_mode(mode) {
+        switch (mode) {
+            case 'Direct': this.system_proxy.set_string('mode', 'none'); break
+            case 'PAC':    this.system_proxy.set_string('mode', 'auto'); break
+            case 'Proxy':  this.system_proxy.set_string('mode', 'manual'); break
+        }
+    }
 }

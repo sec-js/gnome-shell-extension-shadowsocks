@@ -12,6 +12,7 @@ const ss = Me.imports.main.shadowsocks
 const popup_widget = {
     init() {
         this.panel_button = this.create_button()
+        rebuild_menu()
     },
 
     create_button() {
@@ -30,15 +31,30 @@ const popup_widget = {
     },
 
     rebuild_menu() {
+        // cleanup
         const menu = this.panel_button.menu
         menu.removeAll()
 
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
 
-        if (true) {
-            const l = new PopupMenu.PopupMenuItem("Add systemd services ...")
-            menu.addMenuItem(l)
-        }
+        menu.addMenuItem((() => {
+            const item = new PopupMenu.PopupBaseMenuItem()
+            item.actor.add(new St.Label({ text: "Sync Subscriptions" }), { expand: true, x_fill: false }) // the option is to center the text
+            return item
+        })())
+
+        menu.addMenuItem((() => {
+            const item = new PopupMenu.PopupSubMenuMenuItem("Proxy", true)
+            for (const opt of ["Direct", "PAC", "Proxy"]) {
+                const child = new PopupMenu.PopupMenuItem(opt)
+                child.connect('activate', () => {
+                    ss.set_system_proxy_mode(opt)
+                    ss.toast(opt)
+                })
+                item.menu.addMenuItem(child)
+            }
+            return item
+        })())
     },
 
     destroy() {
@@ -60,33 +76,3 @@ function enable() {
 function disable() {
     popup_widget.destroy()
 }
-
-// class StackWindow(Gtk.Window):
-
-//     def __init__(self):
-//         Gtk.Window.__init__(self, title="Stack Demo")
-//         self.set_border_width(10)
-
-//         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-//         self.add(vbox)
-
-//         stack = Gtk.Stack()
-//         stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-//         stack.set_transition_duration(1000)
-        
-//         checkbutton = Gtk.CheckButton("Click me!")
-//         stack.add_titled(checkbutton, "check", "Check Button")
-        
-//         label = Gtk.Label()
-//         label.set_markup("<big>A fancy label</big>")
-//         stack.add_titled(label, "label", "A label")
-
-//         stack_switcher = Gtk.StackSwitcher()
-//         stack_switcher.set_stack(stack)
-//         vbox.pack_start(stack_switcher, True, True, 0)
-//         vbox.pack_start(stack, True, True, 0)
-
-// win = StackWindow()
-// win.connect("destroy", Gtk.main_quit)
-// win.show_all()
-// Gtk.main()

@@ -21,11 +21,12 @@ which is under GPLv3.
 
 ## TODO
 
-[-] find a nice paper plane icon
-[-] SSR subscription
-[-] allow overwriting parameters of subscription
-[-] timeout for curl?
-[-] host local pac file
-[-] add switch for proxy modes
-[-] show pings?
-[-] show status on icon when disconnected?
+- [ ] find a nice paper plane icon
+- [ ] SSR subscription
+- [ ] allow overwriting parameters of subscription
+- [ ] timeout for curl?
+- [ ] host local pac file
+- [ ] add switch for proxy modes
+- [ ] show pings?
+- [ ] show status on icon when disconnected?
+- [ ] allow multiple PAC/manuals, set them by ourself
