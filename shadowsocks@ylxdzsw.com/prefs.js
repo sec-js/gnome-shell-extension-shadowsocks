@@ -8,9 +8,6 @@ const Gtk = imports.gi.Gtk;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
-function init() {
-}
-
 const ExamplePrefsWidget = GObject.registerClass(
 class ExamplePrefsWidget extends Gtk.Grid {
     _init(params) {
@@ -40,6 +37,9 @@ Nevertheless it’s possible to customize the greeting message.";
                                  wrap: true, xalign: 0 }));
     }
 });
+
+function init() {
+}
 
 function buildPrefsWidget() {
     let widget = new ExamplePrefsWidget();
