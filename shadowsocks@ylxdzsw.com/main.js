@@ -85,7 +85,15 @@ const shadowsocks = {
 
     system_proxy: new Gio.Settings({ schema: "org.gnome.system.proxy" }),
 
-    set_system_proxy_mode(mode) {
+    get system_proxy_mode() {
+        switch (this.system_proxy.get_string('mode')) {
+            case 'none': return 'Direct'
+            case 'auto': return 'PAC'
+            case 'manual': return 'Proxy'
+        }
+    },
+
+    set system_proxy_mode(mode) {
         switch (mode) {
             case 'Direct': this.system_proxy.set_string('mode', 'none'); break
             case 'PAC':    this.system_proxy.set_string('mode', 'auto'); break

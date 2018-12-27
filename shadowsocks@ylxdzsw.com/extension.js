@@ -12,7 +12,6 @@ const ss = Me.imports.main.shadowsocks
 const popup_widget = {
     init() {
         this.panel_button = this.create_button()
-        rebuild_menu()
     },
 
     create_button() {
@@ -31,7 +30,6 @@ const popup_widget = {
     },
 
     rebuild_menu() {
-        // cleanup
         const menu = this.panel_button.menu
         menu.removeAll()
 
@@ -39,18 +37,17 @@ const popup_widget = {
 
         menu.addMenuItem((() => {
             const item = new PopupMenu.PopupBaseMenuItem()
-            item.actor.add(new St.Label({ text: "Sync Subscriptions" }), { expand: true, x_fill: false }) // the option is to center the text
+            item.actor.add(new St.Label({ text: "Sync Subscriptions" }))
             return item
         })())
 
         menu.addMenuItem((() => {
-            const item = new PopupMenu.PopupSubMenuMenuItem("Proxy", true)
+            const mode = ss.system_proxy_mode
+            const item = new PopupMenu.PopupSubMenuMenuItem("System Proxy Mode:  " + mode, true)
             for (const opt of ["Direct", "PAC", "Proxy"]) {
                 const child = new PopupMenu.PopupMenuItem(opt)
-                child.connect('activate', () => {
-                    ss.set_system_proxy_mode(opt)
-                    ss.toast(opt)
-                })
+                child.connect('activate', () => ss.system_proxy_mode = opt)
+                child.setOrnament(opt == mode ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE)
                 item.menu.addMenuItem(child)
             }
             return item
