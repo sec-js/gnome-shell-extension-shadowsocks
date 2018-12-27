@@ -18,7 +18,7 @@ const popup_widget = {
         let button = new PanelMenu.Button()
         button._init(null) // this call and an argument is necessary to show menu on click
         let hbox = new St.BoxLayout() // box is necessary for highlighting when active
-        let icon = new St.Icon({ icon_name: 'system-run-symbolic', style_class: 'system-status-icon' })
+        let icon = new St.Icon({ icon_name: 'mail-send-symbolic', style_class: 'system-status-icon' })
         hbox.add_child(icon)
         button.actor.add_actor(hbox)
         button.actor.add_style_class_name('panel-status-button')

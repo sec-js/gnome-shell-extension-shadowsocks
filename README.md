@@ -21,7 +21,6 @@ which is under GPLv3.
 
 ## TODO
 
-- [ ] find a nice paper plane icon
 - [ ] SSR subscription
 - [ ] allow overwriting parameters of subscription
 - [ ] timeout for curl?
