@@ -9,13 +9,13 @@
         "- group: optional, the group name used to group hosts together in menu. defaults to 'default'",
 
         "subscriptions:",
-        "- type: required, can be 'SSR' or 'Surge'",
+        "- type: required, currently can only be 'Surge'",
         "- url: required, the whole subscription url starts with 'http(s)://'",
         "- port, passwd, method: optional, the settings to override those in the subscription",
         "- group: optional, the group name of hosts in this subscription",
 
-        "preference:",
-        "- localport, the local port to listen to, default to 1080"
+        "preference: (all fields are required)",
+        "- localport, the local port to listen to"
     ],
 
     "hosts": [{

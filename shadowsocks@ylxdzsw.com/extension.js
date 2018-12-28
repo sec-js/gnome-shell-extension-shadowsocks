@@ -33,6 +33,15 @@ const popup_widget = {
         const menu = this.panel_button.menu
         menu.removeAll()
 
+        if (true) {
+            menu.addMenuItem((() => {
+                const item = new PopupMenu.PopupMenuItem("Settings")
+                return item
+            })())
+        } else {
+            ss.toast("fuck")
+        }
+
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
 
         menu.addMenuItem((() => {

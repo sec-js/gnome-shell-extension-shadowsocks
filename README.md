@@ -12,7 +12,13 @@ Still under developing, features incomplete.
 
 ## Install
 
-TODO
+```sh
+cd /tmp
+git clone https://github.com/ylxdzsw/gnome-shell-extension-services-systemd 
+mv gnome-shell-extension-services-systemd/shadowsocks@ylxdzsw.com ~/.local/share/gnome-shell/extensions
+```
+
+Then press `Alt+F2` and enter `r` to reload, and enable it in Tweak Tool.
 
 ## Dependencies
 
@@ -22,6 +28,12 @@ This extension makes use of following commands, make sure they are accessible in
 - `xdg-open`: to open the configure directory for you
 - `curl`: to sync subscription
 
+## Settings
+
+This extension reads `configs/config.json` under the its installation directory. `config.example.json` in the same
+folder can be copied as a start point, which contains the descriptions of each settings and itself is valid in format (but
+the server is not accessible, of course).
+
 ## Credits
 
 Forked from [gnome-shell-extension-services-systemd](https://github.com/petres/gnome-shell-extension-services-systemd),
@@ -30,10 +42,8 @@ which is under GPLv3.
 ## TODO
 
 - [ ] SSR subscription
-- [ ] allow overwriting parameters of subscription
 - [ ] timeout for curl?
 - [ ] host local pac file
-- [ ] add switch for proxy modes
 - [ ] show pings?
-- [ ] show status on icon when disconnected?
+- [ ] show status on icon?
 - [ ] allow multiple PAC/manuals, set them by ourself
