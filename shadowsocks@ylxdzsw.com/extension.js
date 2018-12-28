@@ -4,6 +4,7 @@ const Mainloop = imports.mainloop
 const Main = imports.ui.main
 const PanelMenu = imports.ui.panelMenu
 const PopupMenu = imports.ui.popupMenu
+const Message = imports.ui.messageTray
 
 const Me = imports.misc.extensionUtils.getCurrentExtension()
 
@@ -52,27 +53,18 @@ const shadowsocks = {
         })
     },
 
-    // subscription
-    async parse_surge(url) {
-        return this.toast(url)
-        global.log("requesting "+url)
-
-        const [out, err] = await this.exec(["curl", "-L", url])
-        const data = out.join('\n')
-
-
-        global.log("before fuck")
-        const m = out.match(/\[Proxy\]([^]+?)\n\n/)
-        global.log("fuck")
-        
-        global.log(m)
-
-
-        // const list = (m ? m[1] : out.slice(0, -1)).split('\n')
-        // for (const item of list) {
-        //     const [_, name, domain, port, crypt, passwd] = item.match(/^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/)
-        //     global.log(name)
-        // }
+    notify(title, content, pop=true) {
+        return new Promise((resolve, reject) => {
+            try {
+                const source = new Message.Source("GS-extension-shadowsocks", "mail-send-symbolic")
+                Main.messageTray.add(source)
+                const notification = new Message.Notification(source, title, content)
+                notification.connect('activated', resolve)
+                pop ? source.notify(notification) : source.pushNotification(notification)
+            } catch (e) {
+                reject(e)
+            }
+        })
     },
 
     // settings
@@ -107,12 +99,39 @@ const shadowsocks = {
         }
     },
 
-    // configuration
-    read_config() {
-        const [ok, data] = GLib.file_get_contents(Me.dir.get_child('configs').get_child('config.json').get_path())
-        return JSON.parse(data)
+    config: JSON.parse(GLib.file_get_contents(Me.dir.get_child('configs').get_child('config.json').get_path())[1]),
+
+    get servers() {
+        const servers = {}
+        for (const host of this.config.hosts) {
+            const h = { name: host.addr, group: 'default', ...host }
+            const l = servers[h.group] || []
+            servers[h.group] = [...l, h]
+        }
+        // TODO: add subscripted servers
+        return servers
     },
 
+    // manage shadowsocks
+
+    // subscription
+    async parse_surge(url) {
+        return this.toast(url)
+
+        const [out, err] = await this.exec(["curl", "-L", url])
+        const data = out.join('\n')
+
+
+        const m = out.match(/\[Proxy\]([^]+?)\n\n/)
+        
+
+        // const list = (m ? m[1] : out.slice(0, -1)).split('\n')
+        // for (const item of list) {
+        //     const [_, name, domain, port, crypt, passwd] = item.match(/^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/)
+        //     global.log(name)
+        // }
+    },
+    
     // UI
     create_button() {
         let button = new PanelMenu.Button()
@@ -122,34 +141,33 @@ const shadowsocks = {
         hbox.add_child(icon)
         button.actor.add_actor(hbox)
         button.actor.add_style_class_name('panel-status-button')
-        button.actor.connect('button-press-event', () => this.rebuild_menu())
-        // this.parse_surge("http://aliyun.ylxdzsw.com:8080/surge.txt")`
+        button.actor.connect('button-press-event', () => this.update_menu())
         Main.panel.addToStatusArea('shadowsocks-manager', button)
 
         return button
     },
 
-    insert_panel_button() {
-        this.panel_button = this.create_button()
-    },
-
-
-    destroy_panel_button() {
-        this.panel_button.destroy()
-    },
-
-    rebuild_menu() {
+    update_menu() {
         const menu = this.panel_button.menu
         menu.removeAll()
 
-        if (true) {
+        if (Object.keys(this.servers).length)
+            for (const group in this.servers)
+                menu.addMenuItem((() => {
+                    const item = new PopupMenu.PopupSubMenuMenuItem(group, true)
+                    for (const server of this.servers[group]) {
+                        const child = new PopupMenu.PopupMenuItem(server.name)
+                        child.connect("activate", () => this.toast("switch to " + server.addr))
+                        item.menu.addMenuItem(child)
+                    }
+                    return item
+                })()) 
+        else
             menu.addMenuItem((() => {
                 const item = new PopupMenu.PopupMenuItem("Settings")
+                item.connect("activate", () => this.toast(JSON.stringify(this.config)))
                 return item
             })())
-        } else {
-            this.toast("fuck")
-        }
 
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
 
@@ -177,12 +195,13 @@ const shadowsocks = {
     }
 }
 
-// API: show the entry button
+// API: build the entry button
 function enable() {
-    shadowsocks.insert_panel_button()
+    shadowsocks.panel_button = shadowsocks.create_button()
+    shadowsocks.update_menu()
 }
 
-// API: hide the entry button
+// API: destroy the entry button
 function disable() {
-    shadowsocks.destroy_panel_button()
+    shadowsocks.panel_button.destroy()
 }

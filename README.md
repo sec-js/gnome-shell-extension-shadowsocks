@@ -49,3 +49,4 @@ which is under GPLv3.
 - [ ] show status on icon?
 - [ ] allow multiple PAC/manuals, set them by ourself
 - [ ] support shadowsocks-libev (ss-local)
+- [ ] watch config file?
