@@ -28,11 +28,12 @@ This extension makes use of following commands, make sure they are accessible in
 - `xdg-open`: to open the configure directory for you
 - `curl`: to sync subscription
 
-## Settings
+## Configuration
 
-This extension reads `configs/config.json` under the its installation directory. `config.example.json` in the same
-folder can be copied as a start point, which contains the descriptions of each settings and itself is valid in format (but
-the server is not accessible, of course).
+This extension uses a JSON file for configuration, since it is much easier to copy and share than gsettings. This
+extension reads `configs/config.json` under the its installation directory. `config.example.json` in the same folder can
+be copied as a start point, which contains the descriptions of each settings and itself is valid in format (but the
+server is not accessible, of course).
 
 ## Credits
 
@@ -47,3 +48,4 @@ which is under GPLv3.
 - [ ] show pings?
 - [ ] show status on icon?
 - [ ] allow multiple PAC/manuals, set them by ourself
+- [ ] support shadowsocks-libev (ss-local)
