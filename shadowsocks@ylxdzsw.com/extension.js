@@ -113,6 +113,16 @@ const shadowsocks = {
     },
 
     // manage shadowsocks
+    get_running_info(pid) {
+        const data = GLib.file_get_contents(`/proc/${pid}/cmdline`) + ''
+        const list = data.split('\0').slice(1, -1)
+        return { // who would bother writing a correct parser when everyone use 5+Ghz processors?
+            addr: list[list.indexOf('-s')+1],
+            port: list[list.indexOf('-p')+1],
+            passwd: list[list.indexOf('-k')+1],
+            method: list[list.indexOf('-m')+1]
+        }
+    },
 
     // subscription
     async parse_surge(url) {
