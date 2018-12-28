@@ -18,7 +18,7 @@ TODO
 
 This extension makes use of following commands, make sure they are accessible in path.
 
-- `ss-local`: shadowsocks executable
+- `sslocal`: shadowsocks executable
 - `xdg-open`: to open the configure directory for you
 - `curl`: to sync subscription
 

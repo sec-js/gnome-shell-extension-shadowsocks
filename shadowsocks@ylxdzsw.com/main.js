@@ -100,5 +100,10 @@ const shadowsocks = {
             case 'PAC':    this.system_proxy.set_string('mode', 'auto'); break
             case 'Proxy':  this.system_proxy.set_string('mode', 'manual'); break
         }
+    },
+
+    read_config() {
+        const [ok, data] = GLib.file_get_contents(Me.dir.get_child('configs').get_child('config.json').get_path())
+        return JSON.parse(data)
     }
 }

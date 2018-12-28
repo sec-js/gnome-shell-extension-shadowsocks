@@ -1,0 +1,39 @@
+{
+    "comment": [
+        "hosts: ",
+        "- addr: required, the server address (ip or domain)",
+        "- port: required, the server port, number and string are OK",
+        "- passwd: required, the password",
+        "- method: required, the enctyption method used by the server",
+        "- name: optional, the name it displays in the menu. defaults to `addr`",
+        "- group: optional, the group name used to group hosts together in menu. defaults to 'default'",
+
+        "subscriptions:",
+        "- type: required, can be 'SSR' or 'Surge'",
+        "- url: required, the whole subscription url starts with 'http(s)://'",
+        "- port, passwd, method: optional, the settings to override those in the subscription",
+        "- group: optional, the group name of hosts in this subscription",
+
+        "preference:",
+        "- localport, the local port to listen to, default to 1080"
+    ],
+
+    "hosts": [{
+        "addr": "ss.example.org",
+        "port": "8388",
+        "passwd": "very secret",
+        "method": "aes-256-cfb",
+        "name": "example",
+        "group": "US"
+    }],
+
+    "subscriptions": [{
+        "type": "Surge",
+        "url": "https://ss.ylxdzsw.com/surge?token=CBCA1BF8-08CC-4900-8957-EF8113973302",
+        "group": "ylxdzsw"
+    }],
+
+    "preference": {
+        "localport": 1080
+    }
+}
