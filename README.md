@@ -14,6 +14,14 @@ Still under developing, features incomplete.
 
 TODO
 
+## Dependencies
+
+This extension makes use of following commands, make sure they are accessible in path.
+
+- `ss-local`: shadowsocks executable
+- `xdg-open`: to open the configure directory for you
+- `curl`: to sync subscription
+
 ## Credits
 
 Forked from [gnome-shell-extension-services-systemd](https://github.com/petres/gnome-shell-extension-services-systemd),

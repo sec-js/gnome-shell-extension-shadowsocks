@@ -36,8 +36,7 @@ const popup_widget = {
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
 
         menu.addMenuItem((() => {
-            const item = new PopupMenu.PopupBaseMenuItem()
-            item.actor.add(new St.Label({ text: "Sync Subscriptions" }))
+            const item = new PopupMenu.PopupMenuItem("Sync Subscriptions")
             return item
         })())
 

@@ -4,6 +4,7 @@ const Main = imports.ui.main
 const Mainloop = imports.mainloop
 const Me = imports.misc.extensionUtils.getCurrentExtension()
 
+// god object containing all logics and utils except only for UI 
 const shadowsocks = {
     toast(msg) {
         let label = new St.Label({ text: msg })
