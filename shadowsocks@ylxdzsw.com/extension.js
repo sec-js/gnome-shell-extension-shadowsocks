@@ -143,20 +143,31 @@ const shadowsocks = {
 
     // subscription
     async parse_surge(url) {
-        return this.toast(url)
-
         const [out, err] = await this.exec(["curl", "-L", url])
         const data = out.join('\n')
-
-
-        const m = out.match(/\[Proxy\]([^]+?)\n\n/)
+        const m = data.match(/\[Proxy\]([^]+?)\n\n/)
+        const list = (m ? m[1] : data.slice(0, -1)).split('\n')
         
+        const reg = /^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/
+        return list.map(x => x.match(reg)).filter(x => x)
+            .map(([_, name, addr, port, method, passwd]) => ({ name, addr, port, method, passwd }))
+    },
 
-        // const list = (m ? m[1] : out.slice(0, -1)).split('\n')
-        // for (const item of list) {
-        //     const [_, name, domain, port, crypt, passwd] = item.match(/^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/)
-        //     global.log(name)
-        // }
+    async sync_all_subscriptions() {
+        const servers = []
+        const tasks = this.config.subscriptions.map(sub => {
+            switch (sub.type.toLowerCase()) {
+                case 'surge': return this.parse_surge(sub.url)
+                    .then(x => servers.push(...x.map(x => ({...x, ...sub}))))
+                    .catch(e => {
+                        this.notify("sync error", JSON.stringify(sub) + e.toString())
+                        return Promise.resolve(null)
+                    })
+                default: this.notify("config error"); return Promise.resolve(null)
+            }
+        })
+        await Promise.all(tasks)
+        return servers
     },
 
     // UI
@@ -188,7 +199,7 @@ const shadowsocks = {
                         item.menu.addMenuItem(child)
                     }
                     return item
-                })()) 
+                })())
         else
             menu.addMenuItem((() => {
                 const item = new PopupMenu.PopupMenuItem("Settings")
@@ -200,6 +211,7 @@ const shadowsocks = {
 
         menu.addMenuItem((() => {
             const item = new PopupMenu.PopupMenuItem("Sync Subscriptions")
+            item.connect("activate", async () => this.toast(JSON.stringify(await this.sync_all_subscriptions())))
             return item
         })())
 
