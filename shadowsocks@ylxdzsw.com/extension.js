@@ -113,15 +113,32 @@ const shadowsocks = {
     },
 
     // manage shadowsocks
-    get_running_info(pid) {
-        const data = GLib.file_get_contents(`/proc/${pid}/cmdline`) + ''
-        const list = data.split('\0').slice(1, -1)
-        return { // who would bother writing a correct parser when everyone use 5+Ghz processors?
-            addr: list[list.indexOf('-s')+1],
-            port: list[list.indexOf('-p')+1],
-            passwd: list[list.indexOf('-k')+1],
-            method: list[list.indexOf('-m')+1]
+    get running_instance() {
+        try {
+            const pid = GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1]
+            const data = GLib.file_get_contents(`/proc/${pid}/cmdline`)[1] + ''
+            const list = data.split('\0').slice(1, -1)
+            return { // who would bother writing a correct parser when everyone use 8cores * 5Ghz processors?
+                addr: list[list.indexOf('-s')+1],
+                port: list[list.indexOf('-p')+1],
+                passwd: list[list.indexOf('-k')+1],
+                method: list[list.indexOf('-m')+1]
+            }
+        } catch {
+            return null
         }
+    },
+
+    start_shadowsocks(server) {
+        const args = ['sslocal', '-s', server.addr, '-p', server.port, '-k', server.passwd, '-m', server.method,
+                                 '-d', this.running_instance ? 'restart' : 'start',
+                                 '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid", '--log-file', "/dev/null"]
+        return this.exec(args).catch(e => this.notify("error", e))
+    },
+
+    stop_shadowsocks() {
+        const args = ['sslocal', '-d', 'stop', '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid"]
+        return this.running_instance ? this.exec(args) : Promise.reject()
     },
 
     // subscription
@@ -141,7 +158,7 @@ const shadowsocks = {
         //     global.log(name)
         // }
     },
-    
+
     // UI
     create_button() {
         let button = new PanelMenu.Button()
