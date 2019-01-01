@@ -3,11 +3,11 @@ Gnome Extension Shadowsocks
 
 My first GJS project. This project is only for learning developing Gnome extensions.
 
-Still under developing, features incomplete.
+Still under developing.
 
 ## Features
 
-- easily switch proxy from system tray
+- switch ss server and change proxy mode (direct, PAC, manual) from system tray
 - support Surge/SSR subscription
 
 ## Install
@@ -43,12 +43,14 @@ which is under GPLv3.
 ## TODO
 
 - [ ] SSR subscription
-- [ ] timeout for curl?
 - [ ] host local pac file
 - [ ] show pings?
 - [ ] show status on icon?
 - [ ] allow multiple PAC/manuals, set them by ourself
 - [ ] support shadowsocks-libev (ss-local)
-- [ ] watch config file?
+- [ ] listen to config file?
 - [ ] show tooltip on items in menu that display basic information of a server?
-- [ ] restart
+- [ ] add button to restart server?
+- [ ] make the "Settings" work (it should open config directory)
+- [ ] make some screen shots
+- [ ] upload to AUR
