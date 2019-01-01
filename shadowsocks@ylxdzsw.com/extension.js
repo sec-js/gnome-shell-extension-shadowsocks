@@ -9,6 +9,10 @@ const Message = imports.ui.messageTray
 const Me = imports.misc.extensionUtils.getCurrentExtension()
 
 const shadowsocks = {
+    // this is a really annoying issue, that it is so hard to call an external process and get stdio async in gjs
+    // this.fcount, this.exec and this.netget are hacks for this
+    fcount: 0,
+
     // utils
     toast(msg) {
         let label = new St.Label({ text: msg })
@@ -18,7 +22,7 @@ const shadowsocks = {
         Mainloop.timeout_add(3000, () => label.destroy())
     },
 
-    exec(args) {
+    exec(args, timeout=30000) {
         let [_, pid, stdinFd, stdoutFd, stderrFd] =
             GLib.spawn_async_with_pipes(null, args, null, GLib.SpawnFlags.DO_NOT_REAP_CHILD | GLib.SpawnFlags.SEARCH_PATH, null)
 
@@ -45,11 +49,13 @@ const shadowsocks = {
                     stderr.close(null)
 
                     GLib.source_remove(cw)
+                    global.log("resolved:" + JSON.stringify(args))
                     resolve([out, err])
                 } catch (e) {
                     reject(e)
                 }
             })
+            Mainloop.timeout_add(timeout, () => reject(new Error(`${args} timeout in ${timeout}ms`)))
         })
     },
 
@@ -64,6 +70,37 @@ const shadowsocks = {
             } catch (e) {
                 reject(e)
             }
+        })
+    },
+
+    // try to get url with and without proxy, whichever is faster
+    netget(url) {
+        const i1 = this.fcount++
+        const i2 = this.fcount++
+        const p1 = this.exec(['curl', '-s', '-L', url, '-o', `/tmp/gnome-shell-extension-shadowsocks-temp-${i1}`])
+            .then(() => {
+                const data = GLib.file_get_contents(`/tmp/gnome-shell-extension-shadowsocks-temp-${i1}`)[1] + ''
+                return data.trim().length ? data : Promise.reject(new Error("curl error"))
+            })
+        const p2 = this.exec(['curl', '-s', '-L', url, '-o', `/tmp/gnome-shell-extension-shadowsocks-temp-${i2}`,
+                                      '--socks5-hostname', `127.0.0.1:${this.config.preference.localport}`])
+            .then(() => {
+                const data = GLib.file_get_contents(`/tmp/gnome-shell-extension-shadowsocks-temp-${i2}`)[1] + ''
+                return data.trim().length ? data : Promise.reject(new Error("curl error"))
+            })
+        return this.race_success(p1, p2)
+    },
+
+    // return when first success, or all fails
+    race_success(...ps) {
+        return new Promise((resolve, reject) => {
+            const errors = []
+            for (let i = 0; i < ps.length; i++)
+                ps[i].then(x => resolve(x)).catch(e => {
+                    errors[i] = e
+                    if (errors.length == ps.length && errors.every(x => x != undefined))
+                        reject(errors)
+                })
         })
     },
 
@@ -144,7 +181,7 @@ const shadowsocks = {
 
     start_shadowsocks(server) {
         const args = ['sslocal', '-s', server.addr, '-p', server.port.toString(), '-k', server.passwd, '-m', server.method,
-                                 '-d', this.running_instance ? 'restart' : 'start',
+                                 '-l', this.config.preference.localport.toString(), '-d', this.running_instance ? 'restart' : 'start',
                                  '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid", '--log-file', "/dev/null"]
         global.log(JSON.stringify(args))
         return this.exec(args)
@@ -157,8 +194,7 @@ const shadowsocks = {
 
     // subscription
     async parse_surge(url) {
-        const [out, err] = await this.exec(["curl", "-L", url])
-        const data = out.join('\n')
+        const data = await this.netget(url)
         const m = data.match(/\[Proxy\]([^]+?)\n\n/)
         const list = (m ? m[1] : data.slice(0, -1)).split('\n')
         
@@ -213,12 +249,16 @@ const shadowsocks = {
                     const item = new PopupMenu.PopupSubMenuMenuItem(group, true)
                     for (const server of servers[group]) {
                         const child = new PopupMenu.PopupMenuItem(server.name)
-                        child.connect("activate", () => this.start_shadowsocks(server)
-                            .then(() => this.notify(`switched to ${server.name}`))
-                            .catch(e => this.notify("error", e)))
                         if (server.is_current) {
                             child.setOrnament(PopupMenu.Ornament.DOT)
                             item.setOrnament(PopupMenu.Ornament.DOT)
+                            child.connect("activate", () => this.stop_shadowsocks()
+                                .then(() => this.notify(`${server.name} disconnected`))
+                                .catch(e => this.notify("error", e)))
+                        } else {
+                            child.connect("activate", () => this.start_shadowsocks(server)
+                                .then(() => this.notify(`switched to ${server.name}`))
+                                .catch(e => this.notify("error", e)))
                         }
                         item.menu.addMenuItem(child)
                     }
