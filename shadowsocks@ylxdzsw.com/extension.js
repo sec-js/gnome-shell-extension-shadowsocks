@@ -108,7 +108,12 @@ const shadowsocks = {
             const l = servers[h.group] || []
             servers[h.group] = [...l, h]
         }
-        // TODO: add subscripted servers
+
+        for (const host of JSON.parse(this.settings.get_string('proxies'))) {
+            const l = servers[host.group] || []
+            servers[host.group] = [...l, host]
+        }
+
         return servers
     },
 
@@ -129,11 +134,20 @@ const shadowsocks = {
         }
     },
 
+    mark_running_instance(servers) {
+        const {addr, port} = this.running_instance || {}
+        for (const group in servers) for (const server of servers[group])
+            if (server.addr == addr && server.port.toString() == port)
+                server.is_current = true
+        return servers
+    },
+
     start_shadowsocks(server) {
-        const args = ['sslocal', '-s', server.addr, '-p', server.port, '-k', server.passwd, '-m', server.method,
+        const args = ['sslocal', '-s', server.addr, '-p', server.port.toString(), '-k', server.passwd, '-m', server.method,
                                  '-d', this.running_instance ? 'restart' : 'start',
                                  '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid", '--log-file', "/dev/null"]
-        return this.exec(args).catch(e => this.notify("error", e))
+        global.log(JSON.stringify(args))
+        return this.exec(args)
     },
 
     stop_shadowsocks() {
@@ -148,25 +162,24 @@ const shadowsocks = {
         const m = data.match(/\[Proxy\]([^]+?)\n\n/)
         const list = (m ? m[1] : data.slice(0, -1)).split('\n')
         
-        const reg = /^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)/
+        const reg = /^\s*(.+?)\s*=.+?,(.+?),(\d+?),(.+?),(.+?)(,|\s*$)/
         return list.map(x => x.match(reg)).filter(x => x)
             .map(([_, name, addr, port, method, passwd]) => ({ name, addr, port, method, passwd }))
     },
 
     async sync_all_subscriptions() {
         const servers = []
-        const tasks = this.config.subscriptions.map(sub => {
+        const tasks = this.config.subscriptions.map(async sub => {
             switch (sub.type.toLowerCase()) {
-                case 'surge': return this.parse_surge(sub.url)
-                    .then(x => servers.push(...x.map(x => ({...x, ...sub}))))
-                    .catch(e => {
-                        this.notify("sync error", JSON.stringify(sub) + e.toString())
-                        return Promise.resolve(null)
-                    })
-                default: this.notify("config error"); return Promise.resolve(null)
+                case 'surge':
+                    for (const server of await this.parse_surge(sub.url))
+                        servers.push({...server, ...sub})
+                    break
+                default: throw new Error("configuration error")
             }
         })
         await Promise.all(tasks)
+        this.settings.set_string('proxies', JSON.stringify(servers))
         return servers
     },
 
@@ -189,13 +202,24 @@ const shadowsocks = {
         const menu = this.panel_button.menu
         menu.removeAll()
 
-        if (Object.keys(this.servers).length)
-            for (const group in this.servers)
+        const servers = this.mark_running_instance(this.servers)
+    
+        if (Object.values(servers).every(x => x.every(x=>!x.is_current)))
+            this.stop_shadowsocks().catch(e=>null) // stop the running instance whose profile has been removed
+        
+        if (Object.keys(servers).length)
+            for (const group in servers)
                 menu.addMenuItem((() => {
                     const item = new PopupMenu.PopupSubMenuMenuItem(group, true)
-                    for (const server of this.servers[group]) {
+                    for (const server of servers[group]) {
                         const child = new PopupMenu.PopupMenuItem(server.name)
-                        child.connect("activate", () => this.toast("switch to " + server.addr))
+                        child.connect("activate", () => this.start_shadowsocks(server)
+                            .then(() => this.notify(`switched to ${server.name}`))
+                            .catch(e => this.notify("error", e)))
+                        if (server.is_current) {
+                            child.setOrnament(PopupMenu.Ornament.DOT)
+                            item.setOrnament(PopupMenu.Ornament.DOT)
+                        }
                         item.menu.addMenuItem(child)
                     }
                     return item
@@ -211,7 +235,9 @@ const shadowsocks = {
 
         menu.addMenuItem((() => {
             const item = new PopupMenu.PopupMenuItem("Sync Subscriptions")
-            item.connect("activate", async () => this.toast(JSON.stringify(await this.sync_all_subscriptions())))
+            item.connect("activate", () => this.sync_all_subscriptions()
+                .then(ss => this.notify('sync complete', `${ss.length} servers from ${this.config.subscriptions.length} subscriptions`))
+                .catch(e => this.notify('sync failed', e.toString())))
             return item
         })())
 

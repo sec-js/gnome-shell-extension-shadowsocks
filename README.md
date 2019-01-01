@@ -50,3 +50,5 @@ which is under GPLv3.
 - [ ] allow multiple PAC/manuals, set them by ourself
 - [ ] support shadowsocks-libev (ss-local)
 - [ ] watch config file?
+- [ ] show tooltip on items in menu that display basic information of a server?
+- [ ] restart
