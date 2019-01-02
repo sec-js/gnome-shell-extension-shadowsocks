@@ -3,12 +3,12 @@ Gnome Extension Shadowsocks
 
 My first GJS project. This project is only for learning developing Gnome extensions.
 
-Still under developing.
-
 ## Features
 
 - switch ss server and change proxy mode (direct, PAC, manual) from system tray
-- support Surge/SSR subscription
+- support getting server profiles from Surge subscription link
+
+![screenshot](screenshot.png)
 
 ## Install
 
@@ -22,7 +22,7 @@ Then press `Alt+F2` and enter `r` to reload, and enable it in Tweak Tool.
 
 ## Dependencies
 
-This extension makes use of following commands, make sure they are accessible in path.
+This extension makes use of the following commands, make sure they are accessible in path.
 
 - `sslocal` or `ss-local`: shadowsocks or shadowsocks-libev executable
 - `xdg-open`: to open the configure directory for you
@@ -50,6 +50,4 @@ which is under GPLv3.
 - [ ] listen to config file?
 - [ ] show tooltip on items in menu that display basic information of a server?
 - [ ] add button to restart server?
-- [ ] make the "Settings" work (it should open config directory)
-- [ ] make some screen shots
 - [ ] upload to AUR

@@ -98,7 +98,7 @@ const shadowsocks = {
             for (let i = 0; i < ps.length; i++)
                 ps[i].then(x => resolve(x)).catch(e => {
                     errors[i] = e
-                    if (errors.length == ps.length && errors.every(x => x != undefined))
+                    if (Object.keys(errors).length == ps.length)
                         reject(errors)
                 })
         })
