@@ -14,8 +14,8 @@ Still under developing.
 
 ```sh
 cd /tmp
-git clone https://github.com/ylxdzsw/gnome-shell-extension-services-systemd 
-mv gnome-shell-extension-services-systemd/shadowsocks@ylxdzsw.com ~/.local/share/gnome-shell/extensions
+git clone https://github.com/ylxdzsw/gnome-shell-extension-shadowsocks
+mv gnome-shell-extension-shadowsocks/shadowsocks@ylxdzsw.com ~/.local/share/gnome-shell/extensions
 ```
 
 Then press `Alt+F2` and enter `r` to reload, and enable it in Tweak Tool.
@@ -24,7 +24,7 @@ Then press `Alt+F2` and enter `r` to reload, and enable it in Tweak Tool.
 
 This extension makes use of following commands, make sure they are accessible in path.
 
-- `sslocal`: shadowsocks executable
+- `sslocal` or `ss-local`: shadowsocks or shadowsocks-libev executable
 - `xdg-open`: to open the configure directory for you
 - `curl`: to sync subscription
 
@@ -47,7 +47,6 @@ which is under GPLv3.
 - [ ] show pings?
 - [ ] show status on icon?
 - [ ] allow multiple PAC/manuals, set them by ourself
-- [ ] support shadowsocks-libev (ss-local)
 - [ ] listen to config file?
 - [ ] show tooltip on items in menu that display basic information of a server?
 - [ ] add button to restart server?

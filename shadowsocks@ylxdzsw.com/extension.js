@@ -155,6 +155,15 @@ const shadowsocks = {
     },
 
     // manage shadowsocks
+    method: 'ss-local',
+
+    async set_method() {
+        const [out, err] = await shadowsocks.exec(['sslocal', '--version'])
+        global.log(JSON.stringify([out, err]))
+        if (out[0].startsWith('Shadowsocks'))
+            this.method = 'sslocal'
+    },
+
     get running_instance() {
         try {
             const pid = GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1]
@@ -180,15 +189,22 @@ const shadowsocks = {
     },
 
     start_shadowsocks(server) {
-        const args = ['sslocal', '-s', server.addr, '-p', server.port.toString(), '-k', server.passwd, '-m', server.method,
-                                 '-l', this.config.preference.localport.toString(), '-d', this.running_instance ? 'restart' : 'start',
-                                 '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid", '--log-file', "/dev/null"]
-        global.log(JSON.stringify(args))
-        return this.exec(args)
+        if (this.method == 'sslocal') {
+            const args = ['sslocal', '-s', server.addr, '-p', server.port.toString(), '-k', server.passwd, '-m', server.method,
+                                     '-l', this.config.preference.localport.toString(), '-d', this.running_instance ? 'restart' : 'start',
+                                     '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid", '--log-file', "/dev/null"]
+            return this.exec(args)
+        } else {
+            const args = ['ss-local', '-s', server.addr, '-p', server.port.toString(), '-k', server.passwd, '-m', server.method,
+                                      '-l', this.config.preference.localport.toString(), '-f', "/tmp/gnome-shell-extension-shadowsocks.pid"]
+            return this.running_instance ? this.stop_shadowsocks().then(x => this.exec(args)) : this.exec(args)
+        }
     },
 
-    stop_shadowsocks() {
-        const args = ['sslocal', '-d', 'stop', '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid"]
+    async stop_shadowsocks() {
+        const args = this.method == 'sslocal'
+            ? ['sslocal', '-d', 'stop', '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid"]
+            : ['kill', GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1] + '']
         return this.running_instance ? this.exec(args) : Promise.reject()
     },
 
@@ -254,11 +270,11 @@ const shadowsocks = {
                             item.setOrnament(PopupMenu.Ornament.DOT)
                             child.connect("activate", () => this.stop_shadowsocks()
                                 .then(() => this.notify(`${server.name} disconnected`))
-                                .catch(e => this.notify("error", e)))
+                                .catch(e => this.notify("error", e.toString())))
                         } else {
                             child.connect("activate", () => this.start_shadowsocks(server)
                                 .then(() => this.notify(`switched to ${server.name}`))
-                                .catch(e => this.notify("error", e)))
+                                .catch(e => this.notify("error", e.toString())))
                         }
                         item.menu.addMenuItem(child)
                     }
@@ -272,6 +288,14 @@ const shadowsocks = {
             })())
 
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
+
+        menu.addMenuItem((() => {
+            const item = new PopupMenu.PopupMenuItem("debug")
+            item.connect("activate", () => {
+                this.notify(this.method)
+            })
+            return item
+        })())
 
         menu.addMenuItem((() => {
             const item = new PopupMenu.PopupMenuItem("Sync Subscriptions")
@@ -299,6 +323,8 @@ const shadowsocks = {
         this.toast(text)        
     }
 }
+
+shadowsocks.set_method()
 
 // API: build the entry button
 function enable() {
