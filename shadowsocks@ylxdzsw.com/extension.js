@@ -283,19 +283,19 @@ const shadowsocks = {
         else
             menu.addMenuItem((() => {
                 const item = new PopupMenu.PopupMenuItem("Settings")
-                item.connect("activate", () => this.toast(JSON.stringify(this.config)))
+                item.connect("activate", () => this.exec(['xdg-open', Me.dir.get_child('configs').get_path()]))
                 return item
             })())
 
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
 
-        menu.addMenuItem((() => {
-            const item = new PopupMenu.PopupMenuItem("debug")
-            item.connect("activate", () => {
-                this.exec(['xdg-open', Me.dir.get_child('configs').get_path()])
-            })
-            return item
-        })())
+        // menu.addMenuItem((() => {
+        //     const item = new PopupMenu.PopupMenuItem("debug")
+        //     item.connect("activate", () => {
+        //         this.exec(['xdg-open', Me.dir.get_child('configs').get_path()])
+        //     })
+        //     return item
+        // })())
 
         menu.addMenuItem((() => {
             const item = new PopupMenu.PopupMenuItem("Sync Subscriptions")
@@ -316,11 +316,6 @@ const shadowsocks = {
             }
             return item
         })())
-    },
-
-    _showHello() {
-        let text = this.settings.get_boolean('test') ? 'true' : "Hello, world!"
-        this.toast(text)        
     }
 }
 

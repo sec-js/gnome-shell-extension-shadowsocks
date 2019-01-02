@@ -1,2 +1,4 @@
 cp config.example.json config.json
-and edit it accroding to the comments.
+
+and edit it accroding to the comments. You need to reload the plugin to take effect, which can be done via `Alt+F2` and
+then press `r` and enter.
