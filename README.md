@@ -12,6 +12,10 @@ My first GJS project. This project is only for learning developing Gnome extensi
 
 ## Install
 
+> for Arch users: [gnome-shell-extension-shadowsocks-git<sup>AUR</sup>](https://aur.archlinux.org/packages/gnome-shell-extension-shadowsocks-git/) is avalible in AUR.
+
+For non-Arch users, follow the easy steps:
+
 ```sh
 cd /tmp
 git clone https://github.com/ylxdzsw/gnome-shell-extension-shadowsocks
@@ -49,5 +53,4 @@ which is under GPLv3.
 - [ ] allow multiple PAC/manuals, set them by ourself
 - [ ] listen to config file?
 - [ ] show tooltip on items in menu that display basic information of a server?
-- [ ] add button to restart server?
-- [ ] upload to AUR
+- [ ] add button for restarting?

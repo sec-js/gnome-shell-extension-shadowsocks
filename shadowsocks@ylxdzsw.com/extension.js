@@ -136,7 +136,13 @@ const shadowsocks = {
         }
     },
 
-    config: JSON.parse(GLib.file_get_contents(Me.dir.get_child('configs').get_child('config.json').get_path())[1]),
+    config: (() => {
+        try {
+            return JSON.parse(GLib.file_get_contents(Me.dir.get_child('configs').get_child('config.json').get_path())[1])
+        } catch {
+            return { hosts: [], subscriptions: [], preference: { localport: 1080 } }
+        }
+    })(),
 
     get servers() {
         const servers = {}
