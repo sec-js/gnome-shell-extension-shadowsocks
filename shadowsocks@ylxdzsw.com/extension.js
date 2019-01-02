@@ -1,4 +1,4 @@
-const { GLib, GObject, Gio, St } = imports.gi
+const { Gtk, GLib, GObject, Gio, St } = imports.gi
 const Mainloop = imports.mainloop
 
 const Main = imports.ui.main
@@ -292,7 +292,7 @@ const shadowsocks = {
         menu.addMenuItem((() => {
             const item = new PopupMenu.PopupMenuItem("debug")
             item.connect("activate", () => {
-                this.notify(this.method)
+                this.exec(['xdg-open', Me.dir.get_child('configs').get_path()])
             })
             return item
         })())

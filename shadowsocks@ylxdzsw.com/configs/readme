@@ -1,0 +1,2 @@
+cp config.example.json config.json
+and edit it accroding to the comments.
