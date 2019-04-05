@@ -243,8 +243,7 @@ const shadowsocks = {
 
     // UI
     create_button() {
-        let button = new PanelMenu.Button()
-        button._init(null) // this call and an argument is necessary to show menu on click
+        let button = new PanelMenu.Button(null)
         let hbox = new St.BoxLayout() // box is necessary for highlighting when active
         let icon = new St.Icon({ icon_name: 'mail-send-symbolic', style_class: 'system-status-icon' })
         hbox.add_child(icon)

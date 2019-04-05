@@ -3,6 +3,6 @@
     "settings-schema": "org.gnome.shell.extensions.shadowsocks",
     "name": "Shadowsocks",
     "description": "Switch shadowsocks proxy in panel dropdown. Supports Surge/SSR subscription links.",
-    "shell-version": [ "3.30" ],
+    "shell-version": [ "3.30", "3.32" ],
     "url": "https://github.com/ylxdzsw/gnome-shell-extension-shadowsocks"
 }
