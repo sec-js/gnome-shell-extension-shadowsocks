@@ -173,8 +173,8 @@ const shadowsocks = {
     get running_instance() {
         try {
             const pid = GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1]
-            const data = GLib.file_get_contents(`/proc/${pid}/cmdline`)[1] + ''
-            const list = data.split('\0').slice(1, -1)
+            const data = GLib.file_get_contents(`/proc/${pid}/cmdline`)[1]
+            const list = String.fromCharCode.apply(null, data).split('\0').slice(1, -1)
             return { // who would bother writing a correct parser when everyone use 8cores * 5Ghz processors?
                 addr: list[list.indexOf('-s')+1],
                 port: list[list.indexOf('-p')+1],
