@@ -5,8 +5,9 @@ My first GJS project. This project is only for learning developing Gnome extensi
 
 ## Features
 
-- switch ss server and change proxy mode (direct, PAC, manual) from system tray
+- switch ss server and change proxy mode (direct, PAC, manual) from Gnome tray
 - support getting server profiles from Surge subscription link
+- also supports Vmess (V2ray) via [v2socks](https://github.com/ylxdzsw/v2socks)[<sup>AUR</sup>](https://aur.archlinux.org/packages/v2socks) and v2rayN format subscription link
 
 ![screenshot](screenshot.png)
 
@@ -29,6 +30,7 @@ Then press `Alt+F2` and enter `r` to reload, and enable it in Tweak Tool.
 This extension makes use of the following commands, make sure they are accessible in path.
 
 - `sslocal` or `ss-local`: shadowsocks or shadowsocks-libev executable
+- `v2socks`: to support Vmess protocol
 - `xdg-open`: to open the configure directory for you
 - `curl`: to sync subscription
 

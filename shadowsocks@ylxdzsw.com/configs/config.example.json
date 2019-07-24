@@ -3,7 +3,7 @@
         "hosts: ",
         "- addr: required, the server address (ip or domain)",
         "- port: required, the server port, number and string are OK",
-        "- passwd: required, the password",
+        "- passwd: required, the password or vmess user id",
         "- method: required, the enctyption method used by the server",
         "- name: optional, the name it displays in the menu. defaults to `addr`",
         "- group: optional, the group name used to group hosts together in menu. defaults to 'default'",
@@ -23,13 +23,24 @@
         "port": "8388",
         "passwd": "very secret",
         "method": "aes-256-cfb",
-        "name": "example",
+        "name": "ss example",
+        "group": "US"
+    }, {
+        "addr": "v2ray.example.org",
+        "port": "8389",
+        "passwd": "c48619fe-8f02-49e0-b9e9-edf763e17e21",
+        "method": "vmess",
+        "name": "vmess example",
         "group": "US"
     }],
 
     "subscriptions": [{
         "type": "Surge",
         "url": "https://ss.ylxdzsw.com/surge?token=CBCA1BF8-08CC-4900-8957-EF8113973302",
+        "group": "ylxdzsw"
+    }, {
+        "type": "v2rayN",
+        "url": "https://ss.ylxdzsw.com/v2rayN?token=CBCA1BF8-08CC-4900-8957-EF8113973302",
         "group": "ylxdzsw"
     }],
 

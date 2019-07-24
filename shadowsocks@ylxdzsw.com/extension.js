@@ -59,6 +59,11 @@ const shadowsocks = {
         })
     },
 
+    exec_detach(args) {
+        let [_, pid] = GLib.spawn_async(null, args, null, GLib.SpawnFlags.DO_NOT_REAP_CHILD | GLib.SpawnFlags.SEARCH_PATH, null)
+        return pid == 0 ? Promise.reject() : Promise.resolve(pid)
+    },
+
     notify(title, content, pop=true) {
         return new Promise((resolve, reject) => {
             try {
@@ -174,12 +179,22 @@ const shadowsocks = {
         try {
             const pid = GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1]
             const data = GLib.file_get_contents(`/proc/${pid}/cmdline`)[1]
-            const list = String.fromCharCode.apply(null, data).split('\0').slice(1, -1)
-            return { // who would bother writing a correct parser when everyone use 8cores * 5Ghz processors?
-                addr: list[list.indexOf('-s')+1],
-                port: list[list.indexOf('-p')+1],
-                passwd: list[list.indexOf('-k')+1],
-                method: list[list.indexOf('-m')+1]
+            const list = String.fromCharCode.apply(null, data).split('\0')
+            global.log(JSON.stringify(list))
+            if (list[0] == 'v2socks') {
+                return {
+                    addr: list[2].split(':')[0],
+                    port: list[2].split(':')[1],
+                    passwd: list[3],
+                    method: 'vmess'
+                }
+            } else {
+                return { // who would bother writing a correct parser when everyone use 8cores * 5Ghz processors?
+                    addr: list[list.indexOf('-s')+1],
+                    port: list[list.indexOf('-p')+1],
+                    passwd: list[list.indexOf('-k')+1],
+                    method: list[list.indexOf('-m')+1]
+                }
             }
         } catch {
             return null
@@ -195,7 +210,11 @@ const shadowsocks = {
     },
 
     start_shadowsocks(server) {
-        if (this.method == 'sslocal') {
+        if (server.method == "vmess") {
+            const args = ['setsid', 'v2socks', 'vmess', `${server.addr}:${server.port}`, server.passwd, this.config.preference.localport.toString()]
+            const record_pid = pid => GLib.file_set_contents("/tmp/gnome-shell-extension-shadowsocks.pid", pid.toString())
+            return this.running_instance ? this.stop_shadowsocks().then(x => this.exec_detach(args).then(record_pid)) : this.exec_detach(args).then(record_pid)
+        } else if (this.method == 'sslocal') {
             const args = ['sslocal', '-s', server.addr, '-p', server.port.toString(), '-k', server.passwd, '-m', server.method,
                                      '-l', this.config.preference.localport.toString(), '-d', this.running_instance ? 'restart' : 'start',
                                      '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid", '--log-file', "/dev/null"]
@@ -208,10 +227,15 @@ const shadowsocks = {
     },
 
     async stop_shadowsocks() {
-        const args = this.method == 'sslocal'
-            ? ['sslocal', '-d', 'stop', '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid"]
-            : ['kill', GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1] + '']
-        return this.running_instance ? this.exec(args) : Promise.reject()
+        if (!this.running_instance) {
+            return Promise.reject()
+        }
+
+        if (this.running_instance.method == 'vmess' || this.method == 'ss-local') {
+            return this.exec(['kill', GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1] + ''])
+        } else {
+            return this.exec(['sslocal', '-d', 'stop', '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid"])
+        }
     },
 
     // subscription
@@ -225,12 +249,23 @@ const shadowsocks = {
             .map(([_, name, addr, port, method, passwd]) => ({ name, addr, port, method, passwd }))
     },
 
+    async parse_v2rayN(url) {
+        const data = GLib.base64_decode(await this.netget(url)) + ''
+        return data.trim().split('\n')
+            .map(x => JSON.parse(GLib.base64_decode(x.slice(8)) + ''))
+            .map(({ ps, add, port, id }) => ({ name: ps, addr: add, port: port, passwd: id, method: 'vmess'}))
+    },
+
     async sync_all_subscriptions() {
         const servers = []
         const tasks = this.config.subscriptions.map(async sub => {
             switch (sub.type.toLowerCase()) {
                 case 'surge':
                     for (const server of await this.parse_surge(sub.url))
+                        servers.push({...server, ...sub})
+                    break
+                case 'v2rayn':
+                    for (const server of await this.parse_v2rayN(sub.url))
                         servers.push({...server, ...sub})
                     break
                 default: throw new Error("configuration error")
