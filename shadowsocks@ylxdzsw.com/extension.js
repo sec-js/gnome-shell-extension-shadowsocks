@@ -359,7 +359,7 @@ const shadowsocks = {
     }
 }
 
-shadowsocks.set_method()
+shadowsocks.set_method().catch(e=>null)
 
 // API: build the entry button
 function enable() {
