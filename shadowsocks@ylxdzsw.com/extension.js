@@ -252,6 +252,7 @@ const shadowsocks = {
     async parse_v2rayN(url) {
         const data = GLib.base64_decode(await this.netget(url)) + ''
         return data.trim().split('\n')
+            .filter(x => x.startsWith('vmess://'))
             .map(x => JSON.parse(GLib.base64_decode(x.slice(8)) + ''))
             .map(({ ps, add, port, id }) => ({ name: ps, addr: add, port: port, passwd: id, method: 'vmess'}))
     },
