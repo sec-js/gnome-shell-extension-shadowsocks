@@ -2,7 +2,7 @@
     "uuid": "shadowsocks@ylxdzsw.com",
     "settings-schema": "org.gnome.shell.extensions.shadowsocks",
     "name": "Shadowsocks",
-    "description": "Switch shadowsocks proxy in panel dropdown. Supports Surge/SSR subscription links.",
-    "shell-version": [ "3.30", "3.32" ],
+    "description": "Switch shadowsocks and vmess proxy in panel dropdown. Supports Surge/V2rayN subscription links.",
+    "shell-version": [ "3.34", "3.36" ],
     "url": "https://github.com/ylxdzsw/gnome-shell-extension-shadowsocks"
 }

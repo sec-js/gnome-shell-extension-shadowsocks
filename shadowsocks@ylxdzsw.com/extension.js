@@ -303,7 +303,7 @@ const shadowsocks = {
         if (Object.keys(servers).length)
             for (const group in servers)
                 menu.addMenuItem((() => {
-                    const item = new PopupMenu.PopupSubMenuMenuItem(group, true)
+                    const item = new PopupMenu.PopupSubMenuMenuItem(group)
                     for (const server of servers[group]) {
                         const child = new PopupMenu.PopupMenuItem(server.name)
                         if (server.is_current) {
@@ -348,7 +348,7 @@ const shadowsocks = {
 
         menu.addMenuItem((() => {
             const mode = this.system_proxy_mode
-            const item = new PopupMenu.PopupSubMenuMenuItem("System Proxy Mode:  " + mode, true)
+            const item = new PopupMenu.PopupSubMenuMenuItem("System Proxy Mode:  " + mode)
             for (const opt of ["Direct", "PAC", "Proxy"]) {
                 const child = new PopupMenu.PopupMenuItem(opt)
                 child.connect('activate', () => this.system_proxy_mode = opt)
