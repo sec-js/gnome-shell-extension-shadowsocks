@@ -71,11 +71,21 @@ const shadowsocks = {
                 Main.messageTray.add(source)
                 const notification = new Message.Notification(source, title, content)
                 notification.connect('activated', resolve)
-                pop ? source.notify(notification) : source.pushNotification(notification)
+                pop ? source.showNotification(notification) : source.pushNotification(notification)
             } catch (e) {
                 reject(e)
             }
         })
+    },
+
+    file_get_string(file) {
+        return GLib.file_get_contents(file)[1] + ''
+    },
+
+    base64_decode_string_permissive(base64str) {
+        while (base64str.length % 4 != 0)
+            base64str += '='
+        return GLib.base64_decode(base64str) + ''
     },
 
     // try to get url with and without proxy, whichever is faster
@@ -84,13 +94,13 @@ const shadowsocks = {
         const i2 = this.fcount++
         const p1 = this.exec(['curl', '-s', '-L', url, '-o', `/tmp/gnome-shell-extension-shadowsocks-temp-${i1}`])
             .then(() => {
-                const data = GLib.file_get_contents(`/tmp/gnome-shell-extension-shadowsocks-temp-${i1}`)[1] + ''
+                const data = this.file_get_string(`/tmp/gnome-shell-extension-shadowsocks-temp-${i1}`)
                 return data.trim().length ? data : Promise.reject(new Error("curl error"))
             })
         const p2 = this.exec(['curl', '-s', '-L', url, '-o', `/tmp/gnome-shell-extension-shadowsocks-temp-${i2}`,
                                       '--socks5-hostname', `127.0.0.1:${this.config.preference.localport}`])
             .then(() => {
-                const data = GLib.file_get_contents(`/tmp/gnome-shell-extension-shadowsocks-temp-${i2}`)[1] + ''
+                const data = this.file_get_string(`/tmp/gnome-shell-extension-shadowsocks-temp-${i2}`)
                 return data.trim().length ? data : Promise.reject(new Error("curl error"))
             })
         return this.race_success(p1, p2)
@@ -143,8 +153,10 @@ const shadowsocks = {
 
     config: (() => {
         try {
-            return JSON.parse(GLib.file_get_contents(Me.dir.get_child('configs').get_child('config.json').get_path())[1])
-        } catch {
+            const path = Me.dir.get_child('configs').get_child('config.json').get_path()
+            return JSON.parse(GLib.file_get_contents(path)[1] + '')
+        } catch (e) {
+            global.log(e.toString())
             return { hosts: [], subscriptions: [], preference: { localport: 1080 } }
         }
     })(),
@@ -177,7 +189,7 @@ const shadowsocks = {
 
     get running_instance() {
         try {
-            const pid = GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1]
+            const pid = this.file_get_string("/tmp/gnome-shell-extension-shadowsocks.pid")
             const data = GLib.file_get_contents(`/proc/${pid}/cmdline`)[1]
             const list = String.fromCharCode.apply(null, data).split('\0')
             global.log(JSON.stringify(list))
@@ -232,7 +244,7 @@ const shadowsocks = {
         }
 
         if (this.running_instance.method == 'vmess' || this.method == 'ss-local') {
-            return this.exec(['kill', GLib.file_get_contents("/tmp/gnome-shell-extension-shadowsocks.pid")[1] + ''])
+            return this.exec(['kill', this.file_get_string("/tmp/gnome-shell-extension-shadowsocks.pid")])
         } else {
             return this.exec(['sslocal', '-d', 'stop', '--pid-file', "/tmp/gnome-shell-extension-shadowsocks.pid"])
         }
@@ -250,11 +262,17 @@ const shadowsocks = {
     },
 
     async parse_v2rayN(url) {
-        const data = GLib.base64_decode(await this.netget(url)) + ''
-        return data.trim().split('\n')
-            .filter(x => x.startsWith('vmess://'))
-            .map(x => JSON.parse(GLib.base64_decode(x.slice(8)) + ''))
-            .map(({ ps, add, port, id }) => ({ name: ps, addr: add, port: port, passwd: id, method: 'vmess'}))
+        const data = this.base64_decode_string_permissive(await this.netget(url))
+        return data.trim().split('\n').map(x => {
+            if (x.startsWith('vmess://')) {
+                const { ps, add, port, id } = JSON.parse(this.base64_decode_string_permissive(x.slice(8)))
+                return { name: ps, addr: add, port: port, passwd: id, method: 'vmess'}
+            } else if (x.startsWith('ss://')) {
+                const [arg, name] = decodeURIComponent(x.slice(5)).split('#')
+                const [[method, passwd], [addr, port]] = this.base64_decode_string_permissive(arg).split('@').map(x=>x.split(':'))
+                return { name, addr, port, method, passwd }
+            }
+        }).filter(x => x)
     },
 
     async sync_all_subscriptions() {
