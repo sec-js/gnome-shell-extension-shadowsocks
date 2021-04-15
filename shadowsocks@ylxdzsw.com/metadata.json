@@ -3,6 +3,6 @@
     "settings-schema": "org.gnome.shell.extensions.shadowsocks",
     "name": "Shadowsocks",
     "description": "Switch shadowsocks and vmess proxy in panel dropdown. Supports Surge/V2rayN subscription links.",
-    "shell-version": [ "3.34", "3.36" ],
+    "shell-version": [ "3.34", "3.36", "3.38", "40.0" ],
     "url": "https://github.com/ylxdzsw/gnome-shell-extension-shadowsocks"
 }
